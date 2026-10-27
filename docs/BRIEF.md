@@ -2,7 +2,10 @@
 
 Last updated 2026-09-22. Owner: Noah.
 
-This is the brief as of 2026-09-22; the README says what Sill does today.
+This records the original brief of 2026-09-22, with dated amendments below;
+the [README](../README.md) says what Sill does today. The original architecture
+proposals and milestone estimates are not a current implementation checklist.
+See [the documentation index](README.md) for current guides and design evidence.
 
 ## The idea
 
@@ -96,10 +99,10 @@ beta until the plan's device tests pass. Since 2026-10-27 (Noah: "Sound should b
 a toggle in the settings menu") a device's Settings panel turns it on and off for
 every device, and mutes it for itself; no Sound button in the bar.
 
-Milestones (solo, ~10 hrs/week; halve at 20):
+Original milestone estimates (2026-09-22, solo, ~10 hrs/week; halve at 20):
 1. Latency spike, capture→encode→decode — done 2026-09-22 (streams to iPad Mini; latency number still to record)
 2. Input and window control — done 2026-09-22 (latency ≈ 40–60 ms glass-to-glass, estimated from 8–10 ms transport)
-3. Virtual display and scaling — 2–4 wks  ← NOW (AX-resize fallback shipped; virtual display probed OK on macOS 27)
+3. Virtual display and scaling — 2–4 wks (the active milestone on 2026-09-22; AX-resize fallback shipped then, virtual display probed OK on macOS 27)
 4. Client UI and Duo layouts — 4–6 wks
 5. Pairing, encryption, reconnect — 2–4 wks
 6. Shipping: notarization, permission onboarding, TestFlight, review — 2–3 wks

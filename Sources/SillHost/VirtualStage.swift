@@ -189,7 +189,7 @@ final class VirtualStage {
         return Self.fraction(of: live, inside: CGDisplayBounds(d.displayID)) < 0.9
     }
 
-    // MARK: Geometry (pure; the numbers in CLAUDE.md come from these)
+    // MARK: Geometry (pure; the numbers in docs/implementation-history.md come from these)
 
     /// The size the window should have on the virtual display, in Mac points: the client's panel
     /// divided by its text scale (Aa Off or a bad scale count as 1.0), or the window's own size

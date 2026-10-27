@@ -5,8 +5,10 @@ Sill, see the [Support](https://getsill.app/support) page on
 [getsill.app](https://getsill.app).
 
 Until 2026-09-25 this was the README, so where a plan in `docs/` mentions "the
-README", it means a section here. `CLAUDE.md` has the rest: the work in
-progress, the decisions already made, and every test hook.
+README", it means a section here. [The documentation index](README.md) separates
+current guides from design records. [CLAUDE.md](../CLAUDE.md) has the project
+constraints; [Source map and test hooks](agent-reference.md) has the detailed
+reference, and [Implementation history](implementation-history.md) the dated records.
 
 ## Overview
 
@@ -28,7 +30,7 @@ Pipeline: `SCStream (420f) → VTCompressionSession (HEVC, real time, no B-frame
   disk image's background and the App Store screenshots (see its README).
   `docs/`: the brief and the plans.
 
-`CLAUDE.md`, Layout, goes through the code file by file.
+[The source map](agent-reference.md#layout) goes through the code file by file.
 
 ## Build and run
 
@@ -1228,7 +1230,7 @@ Mac's row has Forget in its menu (touch and hold).
 
 ## Test tools
 
-None of these needs a device. `CLAUDE.md`, Build and run, has the complete
+None of these needs a device. [The test reference](agent-reference.md#build-and-run) has the complete
 list, with the test-only environment variables and the recipes for headless
 tests of Direct Wireless Connection and remote access.
 
@@ -1555,7 +1557,7 @@ simulator:
   registered under that type are rows), `-SillHomeDoor paired|open|plain`
   (what a `-SillConnect` address counts as), `-SillCableTest 1` (this
   device's path counts as the cable) and the connect screen's `home…` cases;
-  `CLAUDE.md`, Build and run, has them all.
+  [the test reference](agent-reference.md#build-and-run) has them all.
 - `-Sill.trackpadGestures 0` turns the device's Three-Finger Gestures off for
   one run, `-SillSettingsScroll gestures` opens the Settings panel at that
   group, and `-SillVoiceOver 1` shows it as with VoiceOver on. Under `-SillLive 1`, `-SillInputScript '3 gesture swipeUp'` sends a
@@ -1604,8 +1606,8 @@ simulator:
   Mac on the network a second into a remote session, at a home door that
   speaks TLS, so the move home runs against a synthetic host with `--remote
   --pairing` (dialed pinned to the saved Mac's key, never plain), and
-  `-SillDialSaved remotely` dials it as Connect Remotely does. `CLAUDE.md`,
-  Build and run, has the host side (`SILL_TEST_REMOTE_ORIGIN`,
+  `-SillDialSaved remotely` dials it as Connect Remotely does.
+  [The test reference](agent-reference.md#build-and-run) has the host side (`SILL_TEST_REMOTE_ORIGIN`,
   `SILL_TEST_PATTERN=noise`).
 
 ### The touch rig

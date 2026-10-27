@@ -1,6 +1,6 @@
 import Foundation
 
-// The Mac's modifier keys after a device's keys (CLAUDE.md, "The stuck command after Spotlight"):
+// The Mac's modifier keys after a device's keys (docs/implementation-history.md, "The stuck command after Spotlight"):
 // KeyStrokes (Sources/SillHost), the keyboard events InputInjector posts for a device's keys, put
 // through a model of InputInjector's glue and of the Mac's HID state table.
 //
@@ -1018,7 +1018,7 @@ print("random: \(runs) sessions, \(events) events posted; checks reported in \(r
 // What this device sends: a shortcut with the modifiers' own keys pressed around it, as a keyboard
 // does and as the trackpad already did around a modified click, and a hardware key's up whenever
 // its down went. Put through this Mac's rule and through the rule of every Mac before this fix (a
-// key's flags exactly as the device sent them), which a device must keep working with (CLAUDE.md,
+// key's flags exactly as the device sent them), which a device must keep working with (docs/implementation-history.md,
 // "Compatibility floor"): on both, nothing is left held.
 
 /// A Mac from before this fix (Sill.app 0.3.x, SillHost before 2026-09-27): each key event carries

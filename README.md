@@ -218,6 +218,8 @@ The iPhone and iPad app:
 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) has the rest: every command-line
 flag, the test tools and the simulator harness, permissions and how to reset
 them, Remote Access, troubleshooting and releases.
+[The documentation index](docs/README.md) links the guides and design records;
+[AGENTS.md](AGENTS.md) is the entry point for coding agents.
 
 ## Contributing
 

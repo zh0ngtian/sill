@@ -1,6 +1,11 @@
 # Sill menu bar app — plan
 
-Written 2026-09-23 by the Opus/max design workflow (2 readers, 3 designers, 1 judge). Implementation, review and fix were deliberately stopped here; resume from this plan.
+Written 2026-09-23 by the Opus/max design workflow (2 readers, 3 designers, 1 judge).
+This is the design record. The implemented app uses SwiftPM's `SillHostCore`,
+`SillHostCLI` and `SillMenuBar` targets with `Scripts/make-app.sh`, as defined in
+`Package.swift`; there is no `macApp/Sill.xcodeproj` in this checkout. The
+judging notes and alternate designs below preserve the exploration. Use
+[Developing Sill](DEVELOPMENT.md#sillapp-the-menu-bar-host) for current build steps.
 
 ## Judge's decision
 

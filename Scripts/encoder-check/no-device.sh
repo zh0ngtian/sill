@@ -8,7 +8,7 @@
 # Stricter than that where two Sill.app processes run at once (one idle, one streaming): any
 # "[1s] … · N client(s)" line in the last 60 s blocks, not only the newest stats line.
 # With --since 'YYYY-MM-DD HH:MM:SS': also fail if any connect line is at or after that time.
-# Why: a hardware encoder run beside a stream shares the Mac's one encoder engine with it (CLAUDE.md,
+# Why: a hardware encoder run beside a stream shares the Mac's one encoder engine with it (docs/implementation-history.md,
 # "Busy, not stuck": the operational rule). SILL_LOG_DIR overrides ~/Library/Logs/Sill.
 L=${SILL_LOG_DIR:-$HOME/Library/Logs/Sill}
 cat $L/Sill.1.log $L/Sill.log 2>/dev/null | python3 -c '

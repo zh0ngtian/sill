@@ -1,5 +1,10 @@
 # The iPhone's portrait layout — the plan
 
+Current layout: [Developing Sill, the iOS app](DEVELOPMENT.md#the-ios-app).
+Since 2026-10-28, Show Trackpad can hide the phone's portrait trackpad while
+retaining buttons, thumbnails and keys. The original measurements below describe
+the trackpad-on arrangement; `PhonePortraitLayout.swift` defines both layouts.
+
 2026-09-27. Branch `iphone-portrait` (worktree `/Users/noah/Downloads/winstream-iphone-portrait`)
 from origin/main at cf05a78; line numbers are at cf05a78. Written from a read-only survey of
 `PortraitStreamScreen.swift`, `StreamScreen.swift`, `TrackpadView.swift`, `InputOverlay.swift`,

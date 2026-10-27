@@ -32,7 +32,7 @@ config.virtualDisplay = virtualDisplay
 // `SillHost --direct-wireless`: also advertise over, and accept connections from, peer-to-peer
 // Wi-Fi (AWDL), so a device with no network in common can connect. Off by default: while it is on
 // the Mac's radio leaves its Wi-Fi channel up to ~97 ms every 524 ms, which is the stutter in
-// CLAUDE.md. A device can still turn it on or off; that lasts until SillHost quits.
+// docs/implementation-history.md. A device can still turn it on or off; that lasts until SillHost quits.
 config.directWireless = CommandLine.arguments.contains("--direct-wireless")
 
 // `SillHost --no-clipboard`: share nothing of the clipboard with devices for this run (kind 32,

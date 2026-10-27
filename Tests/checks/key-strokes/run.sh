@@ -1,6 +1,6 @@
 #!/bin/bash
 # KeyStrokes (Sources/SillHost): the keyboard events the Mac is sent for a device's keys, and what
-# they leave in its HID state table, which every click and scroll after them starts from (CLAUDE.md,
+# they leave in its HID state table, which every click and scroll after them starts from (docs/implementation-history.md,
 # "The stuck command after Spotlight"): a key's up leaves only the modifiers still held down, a
 # modifier's own key goes up without its flag, a device's own word on its modifiers lets go of the
 # keys it no longer holds, and a device that leaves, or the host that goes, lets go of its keys; the

@@ -1,5 +1,11 @@
 # Larger Picture on an iPhone held upright — the plan
 
+Current interaction with Show Trackpad (2026-10-28): hiding the portrait trackpad
+keeps the thumbnails and takes precedence over Larger Picture. Its switch is
+disabled while the pad is hidden, with its saved choice retained. See
+[Developing Sill](DEVELOPMENT.md#the-ios-app); the measurements below describe
+Larger Picture with the trackpad shown.
+
 2026-10-14. Branch `larger-picture` (worktree `/Users/noah/Downloads/winstream-larger-picture`) from
 origin/main at 985a733. Issue #58 (rosstex: "The menu and touchpad take up more than half of the
 vertical space on the iOS app. When using Mac apps that rely heavily on scrolling like Notes,

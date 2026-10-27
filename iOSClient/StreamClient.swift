@@ -1112,7 +1112,7 @@ final class StreamClient: ObservableObject {
 
     /// Makes `kind`'s browser and starts it. The network one never peer-to-peer: includePeerToPeer stays
     /// at its default, false. A peer-to-peer browse makes the kernel bring AWDL up, which takes the radio
-    /// off its Wi-Fi channel up to ~100 ms twice a second (CLAUDE.md, trackpad stutter), and on a shared
+    /// off its Wi-Fi channel up to ~100 ms twice a second (docs/implementation-history.md, trackpad stutter), and on a shared
     /// network AWDL carries nothing of Sill's. Direct Wireless Connection is the Mac's opt-in for that
     /// route: the nearby browser, for a Mac whose Direct Wireless Connection is on and that shares no
     /// network with this device, started and stopped by `updateDiscovery` only. Each browser's results

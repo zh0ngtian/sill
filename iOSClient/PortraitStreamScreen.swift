@@ -168,6 +168,10 @@ struct PortraitStreamScreen: View {
     /// switch on: `PhonePortraitLayout.largerPicture(switchOn:streaming:)`); nil for the phone's usual
     /// arrangement (the switch off, the Desktop or nothing streaming), and in the halves.
     var largerKeyboard: CGFloat? = nil
+    var showsTrackpad = true
+    /// Actual keyboard overlap, including an input method's candidate bar.
+    @State private var keyboardOverlap: CGFloat = 0
+    @State private var heldKeyboardOverlap: CGFloat? = nil
 
     private var streamShape: RoundedRectangle { RoundedRectangle(cornerRadius: 12, style: .continuous) }
     /// The Duo's fold across this screen (StreamScreen, iOS 27.1): where the halves split.
@@ -176,11 +180,28 @@ struct PortraitStreamScreen: View {
     var body: some View {
         GeometryReader { geo in
             if metrics.phone {
-                phone(PhonePortraitLayout(size: geo.size, keyboard: largerKeyboard), origin: geo.frame(in: .global).origin)
+                phone(PhonePortraitLayout(size: geo.size, keyboard: largerKeyboard, showsTrackpad: showsTrackpad,
+                                          keyboardOverlap: heldKeyboardOverlap ?? keyboardOverlap),
+                      origin: geo.frame(in: .global).origin)
+                    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { note in
+                        keyboardChanged(note, in: geo)
+                    }
+                    .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidChangeFrameNotification)) { note in
+                        keyboardChanged(note, in: geo)
+                    }
+                    .onChange(of: settingsOpen) { _, open in
+                        heldKeyboardOverlap = open ? keyboardOverlap : nil
+                    }
             } else {
                 halves(geo.size)
             }
         }
+    }
+
+    private func keyboardChanged(_ note: Notification, in geo: GeometryProxy) {
+        guard let end = note.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+        let screen = geo.frame(in: .global)
+        keyboardOverlap = end.intersects(screen) ? max(0, screen.maxY - end.minY) : 0
     }
 
     // MARK: Two halves: the inner display, an iPad window
@@ -328,8 +349,9 @@ struct PortraitStreamScreen: View {
         let larger = layout.largerPicture
         // In reading order, which is also top to bottom: the picture, row 1, the strip (none with
         // Larger Picture), the key row, the trackpad.
-        let rects: [CGRect] = larger ? [layout.pane(video: client.videoSize), layout.row1, layout.keys, layout.trackpad]
-                                     : [layout.picture, layout.row1, layout.strip, layout.keys, layout.trackpad]
+        let rows = larger ? [layout.pane(video: client.videoSize), layout.row1, layout.keys]
+                          : [layout.picture, layout.row1, layout.strip, layout.keys]
+        let rects = layout.showsTrackpad ? rows + [layout.trackpad] : rows
         return ZStack(alignment: .topLeading) {
             Color.black
 
@@ -347,7 +369,9 @@ struct PortraitStreamScreen: View {
                         .accessibilityHidden(drawerOpen)
                 }
                 keyRow(.phone).accessibilityHidden(drawerOpen)
-                trackpad(verticalSpan: span).accessibilityHidden(drawerOpen)
+                if layout.showsTrackpad {
+                    trackpad(verticalSpan: span).accessibilityHidden(drawerOpen)
+                }
             }
 
             if drawerOpen {
@@ -355,7 +379,7 @@ struct PortraitStreamScreen: View {
                     dim.placed(layout.dim[index], in: layout.size)
                 }
                 drawer
-                    .modifier(AfterRow1(active: larger))
+                    .modifier(AfterRow1(active: larger || !layout.showsTrackpad))
                     .placed(layout.drawer, in: layout.size)
                     .transition(.opacity)
             }
@@ -365,6 +389,7 @@ struct PortraitStreamScreen: View {
                     catcher.placed(layout.dim[index], in: layout.size)
                 }
                 settingsPanel
+                    .modifier(AfterRow1(active: !layout.showsTrackpad))
                     .frame(width: layout.settings.width)
                     .frame(maxHeight: layout.settings.height, alignment: .top)
                     .placed(at: layout.settings.origin, in: layout.size)
@@ -650,6 +675,9 @@ private struct PhoneConsole: ViewModifier {
     }
 
     private var trackpadLine: String {
+        if !layout.showsTrackpad {
+            return "trackpad: hidden; picture room \(Self.points(layout.picture.width))×\(Self.points(layout.picture.height)) pt"
+        }
         var line = "trackpad: \(Self.points(layout.trackpad.width))×\(Self.points(layout.trackpad.height)) pt, vertical span "
         line += String(format: "%.1f", span) + " pt"
         if layout.largerPicture {

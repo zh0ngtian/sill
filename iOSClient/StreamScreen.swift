@@ -173,6 +173,9 @@ struct StreamScreen: View {
     /// This device's Larger Picture switch (the Settings panel's This iPhone; docs/larger-picture-plan.md).
     /// It acts only while a window streams (`largerPictureNow`).
     @AppStorage(StreamClient.largerPictureKey) private var largerPicture = false
+    @AppStorage(StreamClient.showTrackpadKey) private var showTrackpad = true
+    /// Apply the new preference as Settings closes, keeping its button and panel still while open.
+    @State private var showTrackpadHeld: Bool?
     /// Larger Picture as it was in effect when the Settings panel opened (`largerPictureNow`), which
     /// the arrangement keeps until the panel closes; nil while it is closed. The panel hangs under row
     /// 1, which the arrangement moves by the picture's growth (157 pt on an 18 Pro Max), so a change
@@ -207,6 +210,10 @@ struct StreamScreen: View {
             ? PhonePortraitLayout.largerPicture(switchOn: UserDefaults.standard.bool(forKey: StreamClient.largerPictureKey),
                                                 streaming: .init(client.active))
             : nil)
+        let defaults = UserDefaults.standard
+        _showTrackpadHeld = State(initialValue: settingsOpen
+            ? (defaults.object(forKey: StreamClient.showTrackpadKey) == nil || defaults.bool(forKey: StreamClient.showTrackpadKey))
+            : nil)
         _pairingOverlay = State(initialValue: pairingOverlay)
         self.scannerOverride = scannerOverride
     }
@@ -219,15 +226,18 @@ struct StreamScreen: View {
             let duo = DuoLayout.of(geo.size)
             let layout: TourLayout = duo == .innerLandscape || duo == .outerLandscape ? .landscape
                 : (DuoLayout.drawsPhone(geo.size) ? .phone : .portrait)
+            let phoneTrackpad = showTrackpadHeld ?? showTrackpad
+            let trackpadInLayout = layout != .phone || phoneTrackpad
             // The fold across this screen, in its own space (iOS 27.1 on the Duo; else as before).
             let posture = DuoPosture.read(geo, duoEnvironment)
+            let trackpadForTour = !DuoLayout.phoneArrangement || posture.onInnerDisplay || phoneTrackpad
             // Larger Picture on a phone held upright: the software keyboard its rows are kept above;
             // none with the switch off, while the Desktop or nothing streams (`largerPictureNow`),
             // sideways, on an iPad, on the iPhone Duo (a hinge), and where the picture would be no
             // larger (Display Zoom at 320 pt wide). While the Settings panel is open, Larger Picture
             // as it was in effect when it opened (`largerPictureHeld`). The arrangement, its viewport
             // (PortraitStreamScreen's picture) and the tour's targets and words all follow from this.
-            let largerKeyboard = layout == .phone
+            let largerKeyboard = layout == .phone && phoneTrackpad
                 ? PhonePortraitLayout.keyboard(for: geo.size, largerPicture: largerPictureHeld ?? largerPictureNow,
                                                foldable: posture.hinge != .unknown) : nil
             // The Settings panel's switch: on an iPhone without a hinge whose picture Larger Picture
@@ -244,7 +254,8 @@ struct StreamScreen: View {
                     case .innerPortrait:
                         portrait(metrics: .regular)
                     case .outerPortrait:
-                        portrait(metrics: DuoLayout.phoneArrangement ? .phone : .compact, largerKeyboard: largerKeyboard)
+                        portrait(metrics: DuoLayout.phoneArrangement ? .phone : .compact, largerKeyboard: largerKeyboard,
+                                 showsTrackpad: phoneTrackpad)
                     }
                 }
                 // Under the pairing overlay and the tour nothing takes a touch: not the bar, and
@@ -252,7 +263,7 @@ struct StreamScreen: View {
                 .allowsHitTesting(!overlayShown && tour == nil)
                 // The pointer sprite follows the layout: the trackpad's arrow shows only in the
                 // laptop layout, and a rotation re-renders it at once; the Mac's arrow stays.
-                .onChange(of: DuoLayout.of(geo.size).isPortrait, initial: true) { _, portrait in
+                .onChange(of: duo.isPortrait && trackpadInLayout, initial: true) { _, portrait in
                     client.setPointerLayout(portrait: portrait)
                 }
                 // The clipboard's chip on screen or not: its 20 s run only while it is, and VoiceOver
@@ -280,10 +291,13 @@ struct StreamScreen: View {
                     // With Larger Picture no thumbnails: the bar card is about Apps, and the cards
                     // upright stand in the picture's whole room, the black under a short picture.
                     TourOverlay(run: run, copy: tourCopy(run, layout, keysOnItsSide: posture.onInnerDisplay,
-                                                         thumbnails: largerKeyboard == nil),
+                                                         thumbnails: largerKeyboard == nil, trackpad: trackpadForTour),
                                 layout: layout, targets: tourTargets,
                                 thumbnails: largerKeyboard == nil,
-                                room: largerKeyboard.map { PhonePortraitLayout(size: geo.size, keyboard: $0).picture },
+                                trackpad: trackpadInLayout,
+                                room: layout == .phone && !phoneTrackpad
+                                    ? PhonePortraitLayout(size: geo.size, showsTrackpad: false).picture
+                                    : largerKeyboard.map { PhonePortraitLayout(size: geo.size, keyboard: $0).picture },
                                 screen: geo.size, bottomInset: geo.safeAreaInsets.bottom,
                                 next: tourNext, skip: tourSkip)
                         .transition(.opacity)
@@ -314,6 +328,7 @@ struct StreamScreen: View {
             .duoFold(posture, size: geo.size, screen: "stream screen")
             .duoStatusBar(posture, size: geo.size)
             .environment(\.largerPictureOffered, offersLarger)
+            .environment(\.phoneTrackpadOffered, DuoLayout.phoneArrangement && !posture.onInnerDisplay)
             #if DEBUG
             // The console's line for the gates: what Larger Picture's rule made of the switch and of
             // what streams, on a phone held upright, each time one of them or the outcome changes.
@@ -712,6 +727,7 @@ struct StreamScreen: View {
             // panel never moves under the finger: a change of the switch, or of what streams,
             // applies as the panel goes.
             largerPictureHeld = open ? largerPictureNow : nil
+            showTrackpadHeld = open ? showTrackpad : nil
         }
         if !open {
             if restoreKeyboard, keyboardBeforeSettings { overlay.setKeyboard(shown: true) }
@@ -787,10 +803,11 @@ struct StreamScreen: View {
 
     /// `keysOnItsSide`: the iPhone Duo open, whose keys and trackpad come with the device on its side.
     /// `thumbnails`: false for a phone with Larger Picture.
-    private func tourCopy(_ run: TourRun, _ layout: TourLayout, keysOnItsSide: Bool = false, thumbnails: Bool = true) -> TourCopy {
+    private func tourCopy(_ run: TourRun, _ layout: TourLayout, keysOnItsSide: Bool = false,
+                          thumbnails: Bool = true, trackpad: Bool = true) -> TourCopy {
         TourPolicy.copy(run.at, layout, mac: client.macName, device: StreamClient.deviceWord,
                         voiceOver: tourVoiceOver, firstOfRun: run.firstOfRun, keysOnItsSide: keysOnItsSide,
-                        thumbnails: thumbnails)
+                        thumbnails: thumbnails, trackpad: trackpad)
     }
 
     private func tourLog(_ line: @autoclosure () -> String) {
@@ -1053,7 +1070,7 @@ struct StreamScreen: View {
     }
 
     /// `largerKeyboard`: Larger Picture's keyboard on a phone (see `body`), nil otherwise.
-    private func portrait(metrics: PortraitMetrics, largerKeyboard: CGFloat? = nil) -> some View {
+    private func portrait(metrics: PortraitMetrics, largerKeyboard: CGFloat? = nil, showsTrackpad: Bool = true) -> some View {
         PortraitStreamScreen(client: client, metrics: metrics, drawerOpen: $drawerOpen,
                              keyboardShown: $keyboardShown,
                              textScale: $textScale, scaleOpen: $scaleOpen, windowMenu: $windowMenu,
@@ -1066,7 +1083,7 @@ struct StreamScreen: View {
                              pairThisDevice: openPairingOverlay,
                              linkLine: shownLinkLine,
                              takeTour: takeTour,
-                             largerKeyboard: largerKeyboard)
+                             largerKeyboard: largerKeyboard, showsTrackpad: showsTrackpad)
     }
 
     private var streamShape: RoundedRectangle { RoundedRectangle(cornerRadius: 12, style: .continuous) }

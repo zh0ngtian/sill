@@ -23,6 +23,10 @@ import CoreGraphics
 /// still a function of the screen's size, the keyboard's height and the switch (with what streams)
 /// alone; the frame and the trackpad's span also of the picture's shape.
 ///
+/// Show Trackpad is on by default. Off keeps the three control rows, gives the picture all their
+/// remaining room and opens Apps and Settings above row 1. The actual keyboard overlap reduces
+/// that room while typing. This takes precedence over Larger Picture, keeping the thumbnails.
+///
 /// `DuoLayout.outerPortrait` on an iPhone draws this (`DuoLayout.phoneArrangement`): every iPhone
 /// upright, and the Duo's outer display upright; an iPad window that narrow keeps the compact halves.
 /// The vertical rhythm is the approved mockup's, with the compact halves' paddings and gaps: 24 pt
@@ -108,6 +112,8 @@ struct PhonePortraitLayout: Equatable {
     /// Larger Picture's keyboard: the software keyboard's height the rows are kept above, which makes
     /// this the Larger Picture arrangement; nil for the standard one.
     let keyboard: CGFloat?
+    /// Off gives the picture the pad's height, keeping all three control rows.
+    let showsTrackpad: Bool
     /// The picture's pane: the frame the video is drawn in, aspect-fit, and the viewport the Mac
     /// fits windows to. With Larger Picture, the picture's room: the viewport still, but the frame is
     /// the picture's own shape inside it (`pane(video:)`).
@@ -171,10 +177,13 @@ struct PhonePortraitLayout: Equatable {
     }
 
     /// `keyboard`: Larger Picture above a software keyboard this tall (`PhonePortraitLayout.keyboard(for:…)`),
-    /// or nil for the standard arrangement.
-    init(size: CGSize, keyboard: CGFloat? = nil) {
+    /// or nil for the standard arrangement. With `showsTrackpad` off, `keyboardOverlap` is the
+    /// actual software keyboard's overlap, zero while it is down; all control rows stay above it.
+    init(size: CGSize, keyboard: CGFloat? = nil, showsTrackpad: Bool = true, keyboardOverlap: CGFloat = 0) {
         self.size = size
-        self.keyboard = keyboard
+        self.showsTrackpad = showsTrackpad
+        // Keeping the thumbnails when the pad is hidden takes precedence over Larger Picture.
+        self.keyboard = showsTrackpad ? keyboard : nil
         let width = size.width, height = size.height
 
         // The picture: full width less the margins, 16:10, unless the trackpad would drop under
@@ -184,9 +193,13 @@ struct PhonePortraitLayout: Equatable {
         let pictureHeight = min(natural, max(0, height - Self.fixedHeight - Self.minTrackpad))
         // Larger Picture: every point above the keyboard but the rows', in whole points; the
         // keyboard's footprint is never less than the least trackpad and its margin.
-        let footprint = keyboard.map { max($0, Self.minTrackpad + Self.bottom) }
+        let footprint = self.keyboard.map { max($0, Self.minTrackpad + Self.bottom) }
         let largerHeight = footprint.map { max(0, (height - $0 - Self.largerFixedHeight).rounded(.down)) }
-        picture = CGRect(x: Self.margin, y: Self.margin, width: pictureWidth, height: largerHeight ?? pictureHeight)
+        let hiddenFixedHeight = Self.fixedHeight - Self.rowGap
+        let overlap = min(max(0, keyboardOverlap), max(0, height - hiddenFixedHeight))
+        let expandedHeight = max(0, (height - hiddenFixedHeight - overlap).rounded(.down))
+        picture = CGRect(x: Self.margin, y: Self.margin, width: pictureWidth,
+                         height: showsTrackpad ? (largerHeight ?? pictureHeight) : expandedHeight)
 
         // Row 1: five equal buttons across the row, `gap` apart, centred in their band.
         let rowWidth = max(0, width - 2 * Self.side)
@@ -224,7 +237,8 @@ struct PhonePortraitLayout: Equatable {
         // keyboard's footprint, from its top (`keyboardClearance` under the key row).
         var padTop = keys.maxY + Self.rowGap
         if let footprint { padTop = max(keys.maxY + Self.keyboardClearance, height - footprint) }
-        trackpad = CGRect(x: Self.side, y: padTop, width: rowWidth, height: max(0, height - Self.bottom - padTop))
+        trackpad = CGRect(x: Self.side, y: padTop, width: rowWidth,
+                          height: showsTrackpad ? max(0, height - Self.bottom - padTop) : 0)
         trackpadSpan = trackpad.width / Self.aspect
 
         // The ruler, centred on Aa: as wide as the room between Aa's centre and the row's leading
@@ -239,12 +253,13 @@ struct PhonePortraitLayout: Equatable {
         // panel stays under row 1: opening it takes the keyboard down, and the picture stays in view.
         let panelTop = row1.maxY + Self.panelGap
         let panelHeight = max(0, height - Self.bottom - panelTop)
-        if footprint == nil {
+        if footprint == nil && showsTrackpad {
             drawer = CGRect(x: Self.side, y: panelTop, width: rowWidth, height: panelHeight)
         } else {
             drawer = CGRect(x: Self.side, y: Self.margin, width: rowWidth, height: max(0, row1.minY - Self.panelGap - Self.margin))
         }
-        settings = CGRect(x: Self.side, y: panelTop, width: rowWidth, height: panelHeight)
+        // With the controls at the bottom, both panels open over the picture, above row 1.
+        settings = showsTrackpad ? CGRect(x: Self.side, y: panelTop, width: rowWidth, height: panelHeight) : drawer
         settingsAnchor = CGPoint(x: width > 0 ? settings.maxX / width : 1, y: height > 0 ? settings.minY / height : 0)
 
         dim = [CGRect(x: 0, y: 0, width: width, height: row1.minY),

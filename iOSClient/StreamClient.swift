@@ -3698,6 +3698,9 @@ final class StreamClient: ObservableObject {
     /// does (`PhonePortraitLayout.largerPicture(switchOn:streaming:)`).
     static let largerPictureKey = "Sill.largerPicture"
 
+    /// This iPhone's portrait trackpad: shown unless turned off. Saved on the device only.
+    static let showTrackpadKey = "Sill.showTrackpad"
+
     /// A three- or four-finger gesture a surface decided (TrackpadGestures, StrokeObserver), to the
     /// Mac as kind 28, which turns it into its own shortcut (docs/trackpad-gestures-plan.md §6.3):
     /// only while this device's switch is on and the Mac says it takes gestures. While a window

@@ -327,7 +327,8 @@ docs/reconnect-after-sleep-plan.md has the rules;
 
 The gear at the end of the bar opens Settings: the Mac's streaming settings,
 changed from the device, and Disconnect at the bottom. After the Mac's settings
-come the device's own: This iPad (or iPhone), with Larger Picture on an iPhone
+come the device's own: This iPad (or iPhone), with Show Trackpad on an iPhone
+(below; on unless turned off), Larger Picture on an iPhone
 (below; off unless turned on), Reverse Scrolling (below; off unless turned on)
 and Three-Finger Gestures (below, Trackpad gestures; on unless turned off),
 none of them ever sent to the Mac, and last Take the Tour.
@@ -357,6 +358,18 @@ Spotlight key there: Spotlight is cmd, then space on the keyboard. The
 trackpad counts a stroke down it as far as the same stroke across a 16:10
 picture, however tall it is. On its side, and on an iPad (a narrow window
 included), everything is as it was.
+
+Show Trackpad (Settings › This iPhone, on by default) can hide the portrait
+trackpad. The preference `Sill.showTrackpad` is saved on this device. A change
+applies when Settings closes: all three control rows stay, and the picture gets
+the pad's height, aspect-fit without cropping. A wide Desktop can still leave
+empty space. Apps and Settings open above the buttons, and the actual keyboard
+overlap keeps the controls above the keyboard while typing. The phone's hidden
+pad takes precedence over Larger Picture (that switch is disabled but its
+choice kept); the iPad and Duo inner-display layouts keep their trackpad.
+`PhonePortraitLayout` owns the rectangles; `Tests/checks/phone-portrait` checks
+the hidden layout and keyboard clearance, and `Tests/checks/tour` checks that
+the tour teaches the remaining keys and how to restore the pad.
 
 Larger Picture (Settings › This iPhone, off by default; issue #58,
 docs/larger-picture-plan.md) gives a phone held upright more picture while a

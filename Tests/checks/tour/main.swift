@@ -1034,5 +1034,18 @@ check(TourPolicy.takeTourTitle == "Take the Tour", "the Settings row")
 check(TourPolicy.takeTourFootnote(device: "iPad") == "A short tour of Sill’s controls on this iPad.", "its footnote")
 check(TourPolicy.takeTourHint(device: "iPhone") == "Shows how to use Sill on this iPhone.", "its hint")
 
+do {
+    let hidden = TourPolicy.copy(.laptop, F, mac: "Mac", device: "iPhone", voiceOver: false,
+                                 firstOfRun: true, trackpad: false)
+    check(TourPolicy.targets(.laptop, F, trackpad: false) == [.keys], "hidden pad: the tour lights only the keys")
+    check(hidden.title == "Keys" && hidden.rows.count == 1
+            && hidden.rows.allSatisfy { !$0.text.contains("trackpad") && !$0.spoken.contains("trackpad") },
+          "hidden pad: the tour teaches the keys without gestures on an absent trackpad")
+    check(hidden.hint.contains("Show Trackpad in Settings"), "hidden pad: the tour explains how to bring it back")
+    check(TourPolicy.copy(.bar, F, mac: "Mac", device: "iPhone", voiceOver: false, firstOfRun: false, trackpad: false)
+            == TourPolicy.copy(.bar, F, mac: "Mac", device: "iPhone", voiceOver: false, firstOfRun: false),
+          "hidden pad: thumbnails and their ordinary touch instructions stay")
+}
+
 print("\(checks) checks, \(failures) failed")
 exit(failures == 0 ? 0 : 1)

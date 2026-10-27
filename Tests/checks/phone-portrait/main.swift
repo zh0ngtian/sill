@@ -758,5 +758,41 @@ for rule in largerRules {
     check("Larger Picture grid (\(largerSizes) layouts): \(rule.name)" + (rule.firstFailure.map { " — first failure at \($0)" } ?? ""), rule.firstFailure == nil)
 }
 
+// MARK: - The portrait trackpad switch
+
+do {
+    let size = pro.container
+    let hidden = L(size: size, showsTrackpad: false)
+    check("hiding the pad on the 17 Pro gives the picture a 386×582 room",
+          hidden.picture.size == CGSize(width: 386, height: 582) && hidden.trackpad.height == 0)
+    check("hiding the pad keeps the five buttons, thumbnails and six keys",
+          hidden.buttons.count == 5 && hidden.strip.height == 62 && hidden.caps.count == 6
+            && hidden.keys.maxY == 796 && !hidden.largerPicture)
+    check("both panels open above the bottom controls and have room to scroll",
+          hidden.drawer == hidden.settings && hidden.settings.minY == 8
+            && hidden.settings.maxY <= hidden.row1.minY - 8 && hidden.settings.height > 500)
+    check("the hidden pad takes precedence over Larger Picture without removing thumbnails",
+          L(size: size, keyboard: 301, showsTrackpad: false) == hidden)
+    check("showing the pad keeps the original layout, regardless of keyboard overlap",
+          L(size: size, keyboardOverlap: 301) == L(size: size)
+            && L(size: size, keyboard: 301, keyboardOverlap: 301) == L(size: size, keyboard: 301))
+    for phone in table.map(\.phone) {
+        let size = phone.container
+        let closed = L(size: size, showsTrackpad: false)
+        check("\(phone.name): hiding the pad increases the picture and preserves control order",
+              closed.picture.height > L(size: size).picture.height && closed.trackpad.height == 0
+                && closed.picture.maxY < closed.row1.minY && closed.row1.maxY < closed.strip.minY
+                && closed.strip.maxY < closed.keys.minY && near(closed.keys.maxY, size.height - 16))
+        if let keyboard = phone.keyboard {
+            for height in [keyboard, keyboard + 44] {
+                let open = L(size: size, showsTrackpad: false, keyboardOverlap: height)
+                check("\(phone.name): the keys and panels clear a \(height) pt keyboard",
+                      near(open.keys.maxY, size.height - height - 16) && open.picture.height > 0
+                        && open.drawer.maxY < open.row1.minY && open.settings == open.drawer)
+            }
+        }
+    }
+}
+
 print("\(passes) passed, \(fails) failed")
 exit(fails == 0 ? 0 : 1)

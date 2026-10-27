@@ -20,7 +20,8 @@ import StreamProtocol
 /// revised it on 2026-10-27), with Mute right under it (this device's own of the Mac's sound, off by
 /// default, `StreamClient.soundMuted`, while the Mac has sound, on or off; Noah, 2026-10-27). Errors show
 /// inline, never in alerts. After the Mac's settings come the device's own groups: This iPad (or
-/// iPhone), whose switches are preferences here and send nothing to the Mac (Larger Picture,
+/// iPhone), whose switches are preferences here and send nothing to the Mac (Show Trackpad,
+/// `StreamClient.showTrackpadKey`, on by default in the phone layout; Larger Picture,
 /// `StreamClient.largerPictureKey`,
 /// on an iPhone without a hinge whose picture it makes larger, `largerPictureOffered`; Share Clipboard,
 /// `StreamClient.clipboardKey`, while the Mac shares its clipboard, with the system's Paste for this
@@ -52,6 +53,8 @@ struct HostSettingsPanel: View {
     /// This device's switch for Larger Picture (docs/larger-picture-plan.md): off unless turned on,
     /// read by the stream screen, never sent.
     @AppStorage(StreamClient.largerPictureKey) private var largerPicture = false
+    @AppStorage(StreamClient.showTrackpadKey) private var showTrackpad = true
+    @Environment(\.phoneTrackpadOffered) private var offersPhoneTrackpad
     /// Whether the switch is offered here, the stream screen's say (`largerPictureOffered`): only on an
     /// iPhone without a hinge whose picture it makes larger.
     @Environment(\.largerPictureOffered) private var offersLargerPicture
@@ -523,7 +526,8 @@ struct HostSettingsPanel: View {
 
     // MARK: This device
 
-    /// This device's own group, after the Mac's: on an iPhone its switch for Larger Picture, then Share Clipboard while the Mac shares its clipboard,
+    /// This device's own group, after the Mac's: on an iPhone Show Trackpad, then Larger Picture,
+    /// then Share Clipboard while the Mac shares its clipboard,
     /// with Paste on ‹Mac› (the system's Paste control) under it while on, then Reverse Scrolling (for
     /// every Mac: it only turns this device's own deltas around), then its switch for three-finger
     /// gestures, and what each does when the Mac takes them (Take the Tour follows it). After the Mac's
@@ -541,14 +545,26 @@ struct HostSettingsPanel: View {
             .padding(.bottom, 6)
             .accessibilityAddTraits(.isHeader)
             .id(Self.gesturesGroupID)
+        if offersPhoneTrackpad {
+            Rows {
+                Toggle(isOn: $showTrackpad) {
+                    Text("Show Trackpad").foregroundStyle(Palette.text)
+                }
+                .rowFrame()
+                .accessibilityIdentifier("showTrackpad")
+            }
+            Footnote(text: "Held upright, turn this off to give the picture the trackpad’s space. Buttons, window thumbnails and keys stay. Tap the picture to click. A change applies when you close Settings.")
+        }
         if offersLargerPicture {
             Rows {
                 Toggle(isOn: $largerPicture) {
                     Text("Larger Picture").foregroundStyle(Palette.text)
                 }
                 .rowFrame()
+                .disabled(!showTrackpad)
             }
-            Footnote(text: Self.largerPictureFooter)
+            Footnote(text: showTrackpad ? Self.largerPictureFooter
+                : "Turn on Show Trackpad to use Larger Picture. With the trackpad hidden, the picture already uses the available height.")
         }
         // The clipboard (docs/clipboard-plan.md): only while the Mac says it shares it.
         if ClipboardPolicy.hostTakes(client.hostClipboard) {
@@ -1000,7 +1016,16 @@ private struct LargerPictureOfferedKey: EnvironmentKey {
     static let defaultValue = false
 }
 
+private struct PhoneTrackpadOfferedKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
 extension EnvironmentValues {
+    var phoneTrackpadOffered: Bool {
+        get { self[PhoneTrackpadOfferedKey.self] }
+        set { self[PhoneTrackpadOfferedKey.self] = newValue }
+    }
+
     var largerPictureOffered: Bool {
         get { self[LargerPictureOfferedKey.self] }
         set { self[LargerPictureOfferedKey.self] = newValue }

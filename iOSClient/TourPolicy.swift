@@ -200,13 +200,13 @@ enum TourPolicy {
     /// with the switch on: PhonePortraitLayout.largerPicture(switchOn:streaming:)), whose thumbnails
     /// are hidden: its bar card lights Apps, Aa and Keyboard in row 1 (and the Menus button between
     /// them). With the Desktop streaming the switch changes nothing, and the thumbnails show.
-    static func targets(_ topic: TourTopic, _ layout: TourLayout, thumbnails: Bool = true) -> [TourTarget] {
+    static func targets(_ topic: TourTopic, _ layout: TourLayout, thumbnails: Bool = true, trackpad: Bool = true) -> [TourTarget] {
         switch topic {
         case .touch: return [.stream]
         case .bar where layout == .phone && !thumbnails: return [.apps, .textSize, .keyboard]
         case .bar: return layout == .portrait ? [.strip, .textSize] : [.strip, .textSize, .keyboard]
         case .settings: return [.settings]
-        case .laptop: return [.keys, .trackpad]
+        case .laptop: return trackpad ? [.keys, .trackpad] : [.keys]
         }
     }
 
@@ -511,7 +511,8 @@ enum TourPolicy {
     /// a phone with Larger Picture in effect (a window streaming with the switch on), whose bar card
     /// is about Apps where the thumbnails were.
     static func copy(_ t: TourTopic, _ layout: TourLayout, mac: String, device: String,
-                     voiceOver: Bool, firstOfRun: Bool, keysOnItsSide: Bool = false, thumbnails: Bool = true) -> TourCopy {
+                     voiceOver: Bool, firstOfRun: Bool, keysOnItsSide: Bool = false, thumbnails: Bool = true,
+                     trackpad: Bool = true) -> TourCopy {
         let mac = mac.isEmpty ? "your Mac" : mac
         let iPad = device == "iPad"
         let keyboardRow = row("keyboard", [strong("Keyboard"), plain(" types on \(mac), on screen or with a hardware keyboard.")])
@@ -562,13 +563,14 @@ enum TourPolicy {
                         row("questionmark.circle", [strong("Take the Tour"), plain(" is there too, to see this again.")])]
             if layout == .landscape {
                 let turn = keysOnItsSide ? "Turn your \(device) on its side" : "Hold your \(device) upright"
-                rows.append(row(iPad ? "ipad" : "iphone", [strong(turn), plain(" for a trackpad and keys.")]))
+                rows.append(row(iPad ? "ipad" : "iphone", [strong(turn),
+                    plain(trackpad ? " for a trackpad and keys." : " for keys and more picture space.")]))
             }
             return TourCopy(title: "Settings", subtitle: nil, rows: rows,
                             hint: layout == .phone ? "The last button in the row under the picture." : "The last button in the bar.")
         case .laptop:
             var rows: [TourRow]
-            if voiceOver {
+            if voiceOver || !trackpad {
                 rows = [row("command", [strong("cmd, opt, ctrl and shift"), plain(" stay on for the next key: cmd, then C, copies.")],
                             spoken: "Command, Option, Control and Shift stay on for the next key: Command, then C, copies.")]
             } else {
@@ -579,17 +581,21 @@ enum TourPolicy {
             if layout != .phone {
                 rows.append(row("keyboard", [strong("The keyboard key"), plain(" types on \(mac), on screen or with a hardware keyboard.")]))
             }
-            if !voiceOver {
+            if !voiceOver && trackpad {
                 rows.append(row("cursorarrow.click.2", [strong("Tap with two fingers"), plain(" on the trackpad to right-click.")]))
                 rows.append(row("hand.draw", [strong("Touch and hold"), plain(" the trackpad, "), strong("then drag"), plain(", to move a window or select text.")]))
             }
-            let subtitle = keysOnItsSide ? "On its side, Sill adds keys and a trackpad." : "Upright, Sill adds keys and a trackpad."
+            let subtitle = trackpad
+                ? (keysOnItsSide ? "On its side, Sill adds keys and a trackpad." : "Upright, Sill adds keys and a trackpad.")
+                : "Upright, Sill keeps the keys below the picture."
             let hint: String
             switch layout {
             case .landscape, .portrait: hint = "Below the bar: the row of keys, then the trackpad."
-            case .phone: hint = thumbnails ? "Under the windows: the row of keys, then the trackpad." : "Under the buttons: the row of keys, then the trackpad."
+            case .phone:
+                hint = trackpad ? (thumbnails ? "Under the windows: the row of keys, then the trackpad." : "Under the buttons: the row of keys, then the trackpad.")
+                    : "Under the windows: the row of keys. Show Trackpad in Settings brings the trackpad back."
             }
-            return TourCopy(title: "Keys and Trackpad", subtitle: firstOfRun ? subtitle : nil, rows: rows, hint: hint)
+            return TourCopy(title: trackpad ? "Keys and Trackpad" : "Keys", subtitle: firstOfRun ? subtitle : nil, rows: rows, hint: hint)
         }
     }
 

@@ -75,7 +75,11 @@ Sill has layouts of its own.
   Exposé, the Spaces, Apps and Show Desktop, through the keyboard shortcuts
   your Mac has for them.
 - **On iPhone**, held upright, the picture is on top with buttons, keys and a
-  trackpad below. Larger Picture, in the settings panel, gives a window's
+  trackpad below. Turn off Show Trackpad in Settings › This iPhone to give
+  the picture its space while keeping the buttons, window thumbnails and keys.
+  Sill remembers the choice; tap the picture to click. The picture keeps its
+  proportions, so the whole desktop may still have empty space above and below.
+  Larger Picture, in the settings panel while Show Trackpad is on, gives a window's
   picture the room of the window thumbnails, down to where the keyboard comes
   up; the Desktop keeps the usual layout. With the virtual display (on unless
   you turn it off in Sill for Mac), your Mac makes a window fill the taller

@@ -204,6 +204,7 @@ struct TourOverlay: View {
     /// False for a phone with Larger Picture in effect (a window streaming with the switch on), whose
     /// thumbnails are hidden (TourPolicy.targets).
     var thumbnails = true
+    var trackpad = true
     /// With Larger Picture in effect, the picture's whole room, which the cards upright are placed
     /// against (TourPolicy.place); nil elsewhere.
     var room: CGRect? = nil
@@ -221,7 +222,9 @@ struct TourOverlay: View {
     @State private var card: TourCardReport? = nil
     @State private var nudges = 0
 
-    private var stepTargets: [CGRect] { TourPolicy.targets(run.at, layout, thumbnails: thumbnails).compactMap { targets[$0] } }
+    private var stepTargets: [CGRect] {
+        TourPolicy.targets(run.at, layout, thumbnails: thumbnails, trackpad: trackpad).compactMap { targets[$0] }
+    }
 
     private var geometry: TourGeometry {
         let found = stepTargets
